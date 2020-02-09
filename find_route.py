@@ -19,7 +19,7 @@ def expand_node(current,fringe,travelled, table, heuristic , node_generated):
 			node_generated += 1
 			fringe.put((current.c_cost+ int(possibility[child]), node(current,child, current.c_cost+ int(possibility[child]) , current.n_level+ 1 ) ))
 
-	return 
+	return node_generated
 
 #--------------------------------------------------
 
@@ -54,7 +54,7 @@ def graph_search(table , start , goal , heuristic):
 		
 		if( current.city not in travelled):
 			travelled.append(current.city)
-			expand_node(current,fringe,travelled, table, heuristic, node_generated)
+			node_generated = expand_node(current,fringe,travelled, table, heuristic, node_generated)
 			node_expanded += 1
 
 
