@@ -1,5 +1,11 @@
+# Alvin Poudel Sharma
+#1001555230
+
 import sys
 from queue import PriorityQueue
+
+
+# class for a node that has the ciy name cumulative cost node level and its parent
 
 class node:
 	def __init__(self, parent , city , c_cost , n_level):
@@ -10,18 +16,34 @@ class node:
 
 #--------------------------------------------------
 
-def expand_node(current,fringe,travelled, table, heuristic , node_generated):
+# this functions has current node, fringe, ravelled set , data table
+# heuristic table and trackers for node generated and boolean to 
+#check if heuristic is to use or not.
+# the function expands the current node and adds it to the fringe by checking if it has been travelled or not
+# returns the count of generated node
+def expand_node(current,fringe,travelled, table, heuristic , node_generated, use_heuristic):
 
 	possibility = table[current.city]
 	
 	for child in possibility:
+		node_generated += 1
 		if( child not in travelled):
-			node_generated += 1
-			fringe.put((current.c_cost+ int(possibility[child]), node(current,child, current.c_cost+ int(possibility[child]) , current.n_level+ 1 ) ))
+			child_node = node(current,child, current.c_cost+ int(possibility[child]) , current.n_level+ 1 ) 
+			
+			if use_heuristic ==False:
+				fringe.put((current.c_cost+ int(possibility[child]), id(child_node ),child_node))
+			else:
+				fringe.put((heuristic[child]+ current.c_cost+ int(possibility[child]), id(child_node ),child_node))
+
 
 	return node_generated
 
 #--------------------------------------------------
+
+# function that has parameters that are data table, start and end state and heuristic value 
+# has various trackers to track the node generated and max memory used by the fringe 
+# generates root node and gets a node from the queue and adds to the travelled set if not added before
+#returns the solution if found else reture None.
 
 def graph_search(table , start , goal , heuristic):
 
@@ -38,45 +60,64 @@ def graph_search(table , start , goal , heuristic):
 	current_level = 0 
 	root = node(None, start , 0, 0)
 	node_generated += 1 
-	fringe.put((0,root))
-	i =0
+	if use_heuristic ==False:
+		fringe.put((0,id(root),root))
+	else:
+		fringe.put((0+ heuristic[start] ,id(root),root))
+
 	while not fringe.empty():
 
 		if max_node_in_mem < fringe.qsize():
 			max_node_in_mem = fringe.qsize()
 
-		current = fringe.get()[1]
-		print('Node cost is ' + str(i) )
-		print(current.c_cost)
-		i+=1
+		current = fringe.get()[2]
+	
 		if (current.city == goal ):
 			return node_expanded , node_generated , max_node_in_mem , current
 		
 		if( current.city not in travelled):
 			travelled.append(current.city)
-			node_generated = expand_node(current,fringe,travelled, table, heuristic, node_generated)
+			node_generated = expand_node(current,fringe,travelled, table, heuristic, node_generated, use_heuristic)
 			node_expanded += 1
 
 
 	return node_expanded , node_generated , max_node_in_mem , None
 
 #--------------------------------------------------
+# helper functions that prints the solution obtained using recursion.
+# takes solution node as the parameter.
+def print_sol(solution):
+
+	if solution.parent == None:
+		return
+
+	print_sol(solution.parent)
+	print("%s to %s, %.2f km" % ((solution.parent).city ,solution.city, solution.c_cost- (solution.parent).c_cost ))
+
+	return
+
+#--------------------------------------------------
+
+# a helper function that has data table , start and goal state and heuristic provided by the user.
+# calls graph search for finding solution to our problem.
 
 def find_route(table , start , goal , heuristic):
 
 	
 	node_expanded , node_generated, max_node_in_mem , solution = graph_search(table , start , goal , heuristic) 
 
-
-	print('nodes expanded : '+ str(node_expanded))
-	print('nodes generated: '+ str(node_generated))
-	print('max nodes in memory: '+ str(max_node_in_mem))
+	print('')
+	print("nodes expanded:%3d" %(node_expanded))
+	print("nodes generated:%2d" %(node_generated))
+	print("max nodes in memory:%2d" %(max_node_in_mem))
 	if(solution == None ):
-		print('distance : infinity')
+		print('distance: infinity')
+		print("route:")
+		print("none")
 	else:
-		print('distance :'+ str(solution.c_cost))
-		print('level :'+ str(solution.n_level))
-
+		print("distance: %.2f km" % (solution.c_cost))
+		print("route:")
+		print_sol(solution)
 
 
 
@@ -86,6 +127,7 @@ def find_route(table , start , goal , heuristic):
 
 #--------------------------------------------------
 
+# reads the heuristic data from a file and stores in a dictionary
 def heuristic_reader(filename):
 
 	heuristic = {}
@@ -105,7 +147,7 @@ def heuristic_reader(filename):
 
 #--------------------------------------------------
 
-
+# reads the city map and stores it in a dictionary of a dictinary for a fast lookup
 def table_creator( filename ):
 	table = {}
 
@@ -135,7 +177,7 @@ def table_creator( filename ):
 	return table
 
 #--------------------------------------------------
-
+# main function that takes commandline argv and opens respective files and store it in the data structure.
 def main() :
 	
 	table ={}
@@ -147,11 +189,6 @@ def main() :
 
 	table = table_creator(sys.argv[1])
 
-	for x in table:
-		print(x + ' ->> ' + str(table[x]))
-
-
-	
 	start = sys.argv[2]
 	goal = sys.argv[3]
 	
