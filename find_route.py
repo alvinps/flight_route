@@ -26,14 +26,14 @@ def expand_node(current,fringe,travelled, table, heuristic , node_generated, use
 	possibility = table[current.city]
 	
 	for child in possibility:
-		node_generated += 1
+		
 		if( child not in travelled):
 			child_node = node(current,child, current.c_cost+ int(possibility[child]) , current.n_level+ 1 ) 
-			
+			node_generated += 1
 			if use_heuristic ==False:
 				fringe.put((current.c_cost+ int(possibility[child]), id(child_node ),child_node))
 			else:
-				fringe.put((heuristic[child]+ current.c_cost+ int(possibility[child]), id(child_node ),child_node))
+				fringe.put((int(heuristic[child])+ current.c_cost+ int(possibility[child]), id(child_node ),child_node))
 
 
 	return node_generated
@@ -63,7 +63,7 @@ def graph_search(table , start , goal , heuristic):
 	if use_heuristic ==False:
 		fringe.put((0,id(root),root))
 	else:
-		fringe.put((0+ heuristic[start] ,id(root),root))
+		fringe.put((0+ int(heuristic[start]) ,id(root),root))
 
 	while not fringe.empty():
 
